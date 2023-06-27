@@ -25,3 +25,8 @@ This shows that the new metric $\tilde{A}$ projects optimally onto the subspace 
 # Dependencies 
 
 Same as MLKRR (see https://github.com/lcmd-epfl/MLKRR), and MLKRR itself.
+
+# Examples
+
+File `dim_red_example.py` gives an example of DRMLKRR.
+File `mlkrr_example.py` gives an example of MLKRR.
