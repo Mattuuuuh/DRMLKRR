@@ -14,9 +14,9 @@ We apply MLKRR on data $\tilde{X}$ and labels $y$ with starting point $\Sigma$ t
 We also complete the basis of $P$ into an orthonormal basis of $\mathbb{R}$, producing $P^\perp \in \mathbb{R}^{n \times n-k}$.
 This is done in order to keep old information of $A$ (almost) intact.
 
-To this end, we define $\tilde{A} = P \cdot (U \Theta V) + P^\perp (P^\perp)^T A$: the new metric projected onto the space spanned by $P$, and the projection of $A$ onto the orthogonal space.
+To this end, we define $\tilde{A} = P \cdot (U \Theta V) + P^\perp (P^\perp)^T A$: the new metric projected onto the space spanned by $P$, plus the projection of $A$ onto the orthogonal space.
 This new matrix verifies
-$$ P^T \tilde{A} = U \Theta V$$
+$$P^T \tilde{A} = U \Theta V$$
 which gives $P^T \tilde{A} x = U \Theta \tilde{x}$.
 $U$ being an orthonormal matrix, it can be safely ignored when considering the induced norm of $P^T \tilde{A}$. In fact we might be able to remove it entirely?
 
