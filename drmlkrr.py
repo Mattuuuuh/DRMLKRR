@@ -25,7 +25,7 @@ class low_rank_MLKRR:
     TODO
     doctest
     """
-    def __init__(self, MLKRR, num_iter_fit=5, max_iter_subset_selection=5, logging=True):
+    def __init__(self, MLKRR, num_iter_fit=5, max_iter_subset_selection=5, logging=False):
         self.max_iter_subset_selection = max_iter_subset_selection
         self.num_iter_fit = num_iter_fit
         self.MLKRR = MLKRR
@@ -154,16 +154,18 @@ class low_rank_MLKRR:
         #    s=-1e-7
         #else:
         #    s=2*laststep
-        s=laststep
+        s=min(2*laststep, 1e-4)
         normG=np.linalg.norm(G)
         if self.logging: print("normG", normG)
-        t=(0.1)*normG**2
+        t=(0.01)*normG**2
         k=0
-        while self.simpleloss(P.T@A)-self.simpleloss((P+s*G).T@A) < s*t:
-            if self.logging: print(s)
+        diff = self.simpleloss(P.T@A)-self.simpleloss((P+s*G).T@A)
+        while diff < s*t:
+            diff = self.simpleloss(P.T@A)-self.simpleloss((P+s*G).T@A)
+            if self.logging: print(s, diff)
             k+=1
             s /= 2
-            if s > -1e-15:
+            if s < 1e-15:
                     return s
         return s
 
@@ -196,18 +198,17 @@ class low_rank_MLKRR:
         vals=[-self.simpleloss(P.T@A)]
         
         k=0
-        s=-1e-2 # starting step, important choice
+        s=1e-4 # starting step, important choice
         stop=False
         while not stop:
             P=M[k]
            
             if self.logging: print("G")
-            G=self.riem_gradient(A,P)
+            G=-self.riem_gradient(A,P)
 
             if self.logging: print("s")
             s=self.step(A,P,G,s)
-            #print(s)
-            assert s<=0, "step size is positive?"
+            assert s>0, "step size is negative?"
             
             if self.logging: print("retract")
             newP=self.retract(P,G,s)
@@ -291,7 +292,7 @@ class low_rank_MLKRR:
 
             newA = P@u@newS@vh + Porth@Porth.T@A
             #
-            if self.verbose: print("New local loss avec MLKRR", -self.simpleloss(P.T@newA))
+            if self.verbose: print("New local loss after MLKRR", -self.simpleloss(P.T@newA))
 
             # new loss
             global_loss=-self.simpleloss(newA)

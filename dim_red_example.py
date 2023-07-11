@@ -24,7 +24,7 @@ m, n=X.shape
 y=np.load("u0.npy", allow_pickle=True)
 
 # takes 4000 random indices, and 2000 random indices among them for data and test
-S=4000
+S=8000
 indices=np.random.choice(range(m), size=S, replace=False)
 indices_test=np.random.choice(range(S), size=2000, replace=False)
 mask=np.ones(S, dtype=bool)
@@ -45,7 +45,7 @@ M = mlkrr.MLKRR(
         krr_regularization=1e-9
         )
 
-LRM = drm.low_rank_MLKRR(M, num_iter_fit=5, max_iter_subset_selection=5)
+LRM = drm.low_rank_MLKRR(M, num_iter_fit=20, max_iter_subset_selection=10, logging=True)
 
 # run optimization and save object
 LRM.fit(X[ind_data], y[ind_data], rank=100)
