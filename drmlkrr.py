@@ -25,7 +25,7 @@ class low_rank_MLKRR:
     TODO
     doctest
     """
-    def __init__(self, MLKRR, num_iter_fit=5, max_iter_subset_selection=5):
+    def __init__(self, MLKRR, num_iter_fit=5, max_iter_subset_selection=5, logging=True):
         self.max_iter_subset_selection = max_iter_subset_selection
         self.num_iter_fit = num_iter_fit
         self.MLKRR = MLKRR
@@ -36,6 +36,7 @@ class low_rank_MLKRR:
         self.sigma = MLKRR.sigma
         self.size_alpha = MLKRR.size_alpha
         self.size_A = MLKRR.size_A
+        self.logging= logging
 
     def simpleloss(self,A):
         sigma = self.sigma
@@ -149,14 +150,17 @@ class low_rank_MLKRR:
     # This is the backtracking line search by Armijo (1966), see wiki.
     # The constant 0.1 is a free parameter in this method, and I chose it randomly.
     def step(self,A,P,G,laststep):
-        if laststep>-1e-10:
-            s=-1e-7
-        else:
-            s=2*laststep
-        t=(0.1)*np.linalg.norm(G)**2
+        #if laststep>-1e-10:
+        #    s=-1e-7
+        #else:
+        #    s=2*laststep
+        s=laststep
+        normG=np.linalg.norm(G)
+        if self.logging: print("normG", normG)
+        t=(0.1)*normG**2
         k=0
-        while self.simpleloss(P.T@A)-self.simpleloss((P+s*G).T@A) < -s*t:
-            logging.info(k)
+        while self.simpleloss(P.T@A)-self.simpleloss((P+s*G).T@A) < s*t:
+            if self.logging: print(s)
             k+=1
             s /= 2
             if s > -1e-15:
@@ -196,18 +200,23 @@ class low_rank_MLKRR:
         stop=False
         while not stop:
             P=M[k]
-            
+           
+            if self.logging: print("G")
             G=self.riem_gradient(A,P)
 
+            if self.logging: print("s")
             s=self.step(A,P,G,s)
             #print(s)
             assert s<=0, "step size is positive?"
             
+            if self.logging: print("retract")
             newP=self.retract(P,G,s)
 
             M.append(newP)
             vals.append(-self.simpleloss(newP.T@A))
-            
+            if self.logging: print(-self.simpleloss(newP.T@A))
+
+            if self.logging: print("stop")
             stop=self.check_stop(G,vals,k,opt_steps=self.max_iter_subset_selection,tol=self.tol)
             
             k=k+1
