@@ -187,7 +187,7 @@ class low_rank_MLKRR:
     # P is n-by-k and A is n-by-n
     # we pick P to be orthogonal as well (P.T @ P = 1)
     def optimize(self,A,P):
-
+        if self.verbose: print("Starting subspace loss maximization.")
         M=[P]
         vals=[-self.simpleloss(P.T@A)]
         
@@ -215,6 +215,7 @@ class low_rank_MLKRR:
         return M[-1], vals
 
     def fit(self, X, y, rank):
+        if self.verbose: print(f"Running fit... \n Rank : {rank}/{X.shape[1]}, fit iter: {self.num_iter_fit}, subspace iter: {self.max_iter_subset_selection}, MLKRR iter: {self.MLKRR.max_iter_per_shuffle}")
 
         self.X=X
         self.y=y
@@ -246,8 +247,10 @@ class low_rank_MLKRR:
         losses=[-self.simpleloss(A)]
         tests=[]
         for i in range(self.num_iter_fit):
+            if self.verbose: print(f"Fit iteration {i+1} / {self.num_iter_fit}")
+
             P, vals=self.optimize(A,P)
-            if self.verbose: print(vals)
+            if self.verbose: print("First and last local losses", vals[0], vals[-1])
 
             # complete P to orthonormal basis.
             P, Porth = self.orthonormal_completion(P)
@@ -264,7 +267,7 @@ class low_rank_MLKRR:
             MLKRR.fit(newX, y)
             newS=MLKRR.A
 
-            print(-self.simpleloss(P.T@A))
+            #print(-self.simpleloss(P.T@A))
 
             # actually if we did optimize on positive semi-definite matrices, we would not have this problem
             # since then A = P @ diag(s) @ P.T and we would modify newX=X@P.T and optimize on diag(s)...
@@ -277,12 +280,23 @@ class low_rank_MLKRR:
             # actually P@... isn't good: A becomes rank k. We want to keep P.T info and old info
             #Porth = np.linalg.svd(P)[0][:,:rank]
 
-            A = P@u@newS@vh + Porth@Porth.T@A
+            newA = P@u@newS@vh + Porth@Porth.T@A
             #
-            if self.verbose: print(-self.simpleloss(P.T@A))
+            if self.verbose: print("New local loss avec MLKRR", -self.simpleloss(P.T@newA))
 
             # new loss
-            losses.append(-self.simpleloss(A))
+            global_loss=-self.simpleloss(newA)
+            old_global_loss=losses[-1]
+            if self.verbose: print("Previous global loss", old_global_loss)
+            if self.verbose: print("New global loss", global_loss)
+            
+            if old_global_loss < global_loss:
+                if self.verbose: print("New loss is not an improvement, continuing.")
+                losses.append(old_global_loss)
+                continue
+            
+            losses.append(global_loss)
+            A=newA
 
             # test RMSE stuff
             
