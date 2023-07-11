@@ -48,6 +48,6 @@ M = mlkrr.MLKRR(
 LRM = drm.low_rank_MLKRR(M, num_iter_fit=20, max_iter_subset_selection=10, logging=True)
 
 # run optimization and save object
-LRM.fit(X[ind_data], y[ind_data], rank=100)
+LRM.fit(X[ind_data], y[ind_data], rank=300)
 np.save("DRMLKRR.npy",LRM)
 
