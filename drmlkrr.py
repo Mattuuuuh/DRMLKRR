@@ -155,7 +155,7 @@ class low_rank_MLKRR:
         #else:
         #    s=2*laststep
         s=min(2*laststep, 1e-4)
-        normG=np.linalg.norm(G)
+        normG=np.linalg.norm(G, ord='fro')
         if self.logging: print("normG", normG)
         t=(0.01)*normG**2
         k=0
@@ -172,8 +172,7 @@ class low_rank_MLKRR:
     # Stop conditions in gradient descent.
     def check_stop(self,G,vals,k,opt_steps,tol):
         maxsteps=opt_steps
-        if self.verbose: print(f"Step: {k} / {maxsteps}")
-        if(np.linalg.norm(G) < tol):
+        if(np.linalg.norm(G, ord='fro') < tol):
             if self.verbose: print("Stop due to gradient tolerance.")
             return True
         # outcommented for now
@@ -201,6 +200,7 @@ class low_rank_MLKRR:
         s=1e-4 # starting step, important choice
         stop=False
         while not stop:
+            if self.verbose: print(f"Step: {k+1} / {self.max_iter_subset_selection}")
             P=M[k]
            
             if self.logging: print("G")
